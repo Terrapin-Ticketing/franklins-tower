@@ -16,11 +16,15 @@ contract Ticket {
 		price = _price;
 	}
 
-	function buyTicket() payable {
+	function buyTicket() payable { // NOTE: test exact price
 		if (owner != publisher) throw;
 		if (msg.value < price) throw;
-		bool success = publisher.send(msg.value);
-		if (!success) throw;
+		// should never be negative because of previous check
+		uint extra = msg.value - price;
+		// return any extra funds back to sender
+		if (!msg.sender.send(extra)) throw;
+		if (!publisher.send(msg.value)) throw;
+		// set new owner
 		owner = msg.sender;
 	}
 }
