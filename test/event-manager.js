@@ -66,7 +66,8 @@ contract('EventManager', function(accounts) {
         .then((eventAddrs) => Event.at(eventAddrs[i]))
         .then((eventInstance) => {
           // shuuld be done with doWhielst
-          let numTickets = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+          // let numTickets = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+          let numTickets = [1, 2, 3, 4, 5, 6, 7];
           return pasync.eachSeries(numTickets, () => {
             return eventInstance.printTicket(price, {
               from: accounts[1],
@@ -85,11 +86,11 @@ contract('EventManager', function(accounts) {
       .then(() => {
         let i = 0;
         return pasync.eachSeries([
-          { name: 'The String Cheese Incident', price: 100 },
-          { name: 'Phish @ MSG', price: 80 },
-          { name: 'DSO @ Taft', price: 40 },
-          { name: 'Marcus King Band @ Hamilton', price: 15 },
-          { name: 'Greensky Bluegrass in the woods', price: 75 }
+          { name: 'The String Cheese Incident', price: 100 }
+          // { name: 'Phish @ MSG', price: 80 },
+          // { name: 'DSO @ Taft', price: 40 },
+          // { name: 'Marcus King Band @ Hamilton', price: 15 },
+          // { name: 'Greensky Bluegrass in the woods', price: 75 }
         ], (obj) => {
           return createEvent(obj.name, obj.price, i)
             .then(() => {
