@@ -11,7 +11,7 @@ module.exports = function(deployer) {
       return new Promise((resolve, reject) => {
         // write the address to build/info.json
         fs.writeFile(`${__dirname}/../build/info.json`, JSON.stringify({
-          terrapinAddr: EventManager.address
+          terrapinAddress: EventManager.address
         }, null, '  '), (err) => {
           if (err) return reject(err);
           return resolve();
