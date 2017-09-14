@@ -9,14 +9,14 @@ let abis = JSON.stringify({
   ticket: require('./build/contracts/Ticket')
 });
 
-let { terrapinAddr } = require('./build/info.json');
+let { terrapinAddress } = require('./build/info.json');
 
 let options = {
   method: 'POST',
   uri: eyesUri,
   body: {
     abis,
-    terrapinAddr
+    terrapinAddress
   },
   json: true // Automatically stringifies the body to JSON
 };
