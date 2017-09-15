@@ -51,7 +51,7 @@ contract('EventManager', function(accounts) {
     });
   });
 
-  it.only('should create an event and issue tickets', function() {
+  it('should create an event and issue tickets', function() {
     let terrapin;
 
     function createEvent(name, price, i) {
@@ -100,7 +100,7 @@ contract('EventManager', function(accounts) {
       });
   });
 
-  it('should buy ticket', function() {
+  it.only('should buy ticket', function() {
     let eventName = 'String Cheese Incident @ Colorado';
     let price = 700;
 
