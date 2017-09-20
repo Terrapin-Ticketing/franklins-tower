@@ -20,6 +20,7 @@ function guidGenerator() {
   return (S4()+S4()+'-'+S4()+'-'+S4()+'-'+S4()+'-'+S4()+S4()+S4());
 }
 
+
 contract('EventManager', function(accounts) {
   it('should init manager', function() {
     return deployed().then((terrapin) => terrapin.owner.call())
@@ -51,7 +52,7 @@ contract('EventManager', function(accounts) {
     });
   });
 
-  it.only('should create an event and issue tickets', function() {
+  it('should create an event and issue tickets', function() {
     let terrapin;
 
     function createEvent(name, price, i) {
@@ -100,7 +101,7 @@ contract('EventManager', function(accounts) {
       });
   });
 
-  it('should buy ticket', function() {
+  it.only('should buy ticket', function() {
     let eventName = 'String Cheese Incident @ Colorado';
     let price = 700;
 
@@ -146,8 +147,24 @@ contract('EventManager', function(accounts) {
           .then((owner) => {
             console.log('new owner: ', owner);
             return ticketInstance;
-          });
-      });
+          })
+          .then(() => ticketInstance);
+      })
+      .then((ticketInstance) => {
+        console.log('Transfer to Account #2')
+        return ticketInstance.transferTicket(accounts[2], {
+          from: accounts[0],
+          gas: 4700000
+        }).then(() => ticketInstance);
+        // TODO: Test Ticket Transfer Here
+      }).then((ticketInstance) =>{
+        return ticketInstance.owner.call()
+        .then((owner) => {
+          console.log('transfered owner: ', owner);
+          return ticketInstance;
+        })
+        .then(() => ticketInstance);
+      })
   });
 
   // it('should', function() {

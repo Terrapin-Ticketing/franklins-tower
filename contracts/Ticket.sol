@@ -29,4 +29,10 @@ contract Ticket {
 		// set new owner
 		owner = msg.sender;
 	}
+
+	function transferTicket(address _recipient) {
+		if (owner != msg.sender) throw;
+		owner = _recipient;
+	}
+
 }
