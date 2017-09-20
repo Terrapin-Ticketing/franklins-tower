@@ -11,6 +11,8 @@ contract EventManager {
 	address public owner;
 	address[] public events;
 
+	event EventCreated(address _eventAddress);
+
 	/*mapping (address => address[]) guestList;
 
 	address[] tickets = guestList[walletAddress]*/
@@ -20,11 +22,13 @@ contract EventManager {
 	}
 
 	function createEvent(bytes32 _eventName) {
-		// dispatch an event
-		events.push(new Event(
+		Event ev = new Event(
 			msg.sender,
 			_eventName
-		));
+		);
+		// dispatch an event
+		events.push(ev);
+		EventCreated(address(ev));
 	}
 
 	function getEvents() constant returns(address[]) {
