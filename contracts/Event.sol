@@ -23,6 +23,7 @@ contract Event {
 		tickets.push(new Ticket(
 			owner,
 			owner,
+			address(this),
 			_price
 		));
 	}
