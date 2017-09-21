@@ -56,7 +56,25 @@ contract('EventManager', function(accounts) {
     let terrapin;
 
     function createEvent(name, price, i) {
-      console.log('i', i);
+      // console.log('i', i);
+      var event = terrapin.EventCreated(null, () => {
+        console.log('event triggred');
+      });
+
+      // // watch for changes
+      // event.watch(function(error, result) {
+      //   if (!error) {
+      //     console.log(result);
+      //   }
+      //   console.log('result!', result);
+      // });
+
+      // // Or pass a callback to start watching immediately
+      // var event = myContractInstance.MyEvent([{valueA: 23}] [, additionalFilterObject] , function(error, result){
+      //   if (!error)
+      //     console.log(result);
+      // });
+
       return terrapin.createEvent(name,
         {
           from: accounts[1],
@@ -74,7 +92,7 @@ contract('EventManager', function(accounts) {
               from: accounts[1],
               gas: 4700000
             }).then((tx) => {
-              console.log(tx);
+              // console.log(tx);
             });
           });
         });

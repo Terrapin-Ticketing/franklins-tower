@@ -27,6 +27,7 @@ contract Ticket {
 		if (!msg.sender.send(extra)) revert();
 		if (!publisher.send(msg.value)) revert();
 		// set new owner
+
 		owner = msg.sender;
 	}
 
