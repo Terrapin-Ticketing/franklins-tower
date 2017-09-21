@@ -20,6 +20,7 @@ function guidGenerator() {
   return (S4()+S4()+'-'+S4()+'-'+S4()+'-'+S4()+'-'+S4()+S4()+S4());
 }
 
+
 contract('EventManager', function(accounts) {
   it('should init manager', function() {
     return deployed().then((terrapin) => terrapin.owner.call())
@@ -104,13 +105,13 @@ contract('EventManager', function(accounts) {
       .then(() => {
         let i = 0;
         return pasync.eachSeries([
-          { name: 'The String Cheese Incident', price: 100 }
+          { name: 'The String Cheese Incident', price: 1 }
           // { name: 'Phish @ MSG', price: 80 },
           // { name: 'DSO @ Taft', price: 40 },
           // { name: 'Marcus King Band @ Hamilton', price: 15 },
           // { name: 'Greensky Bluegrass in the woods', price: 75 }
         ], (obj) => {
-          return createEvent(obj.name, obj.price, i)
+          return createEvent(obj.name, (obj.price * 1000000000000000000), i)
             .then(() => {
               i++;
             });
@@ -120,7 +121,7 @@ contract('EventManager', function(accounts) {
 
   it('should buy ticket', function() {
     let eventName = 'String Cheese Incident @ Colorado';
-    let price = 700;
+    let price = 1;
 
     let terrapin;
     return deployed().then((_terrapin) => {
@@ -164,8 +165,24 @@ contract('EventManager', function(accounts) {
           .then((owner) => {
             console.log('new owner: ', owner);
             return ticketInstance;
-          });
-      });
+          })
+          .then(() => ticketInstance);
+      })
+      .then((ticketInstance) => {
+        console.log('Transfer to Account #2')
+        return ticketInstance.transferTicket(accounts[2], {
+          from: accounts[0],
+          gas: 4700000
+        }).then(() => ticketInstance);
+        // TODO: Test Ticket Transfer Here
+      }).then((ticketInstance) =>{
+        return ticketInstance.owner.call()
+        .then((owner) => {
+          console.log('transfered owner: ', owner);
+          return ticketInstance;
+        })
+        .then(() => ticketInstance);
+      })
   });
 
   // it('should', function() {
