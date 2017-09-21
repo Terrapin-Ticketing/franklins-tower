@@ -19,19 +19,19 @@ contract Ticket {
 	}
 
 	function buyTicket() payable { // NOTE: test exact price
-		if (owner != publisher) throw;
-		if (msg.value < price) throw;
+		require(owner != publisher);
+		require(msg.value < price);
 		// should never be negative because of previous check
 		uint extra = msg.value - price;
 		// return any extra funds back to sender
-		if (!msg.sender.send(extra)) throw;
-		if (!publisher.send(msg.value)) throw;
+		if (!msg.sender.send(extra)) revert();
+		if (!publisher.send(msg.value)) revert();
 		// set new owner
 		owner = msg.sender;
 	}
 
 	function transferTicket(address _recipient) {
-		if (owner != msg.sender) throw;
+		if (owner != msg.sender) revert();
 		owner = _recipient;
 	}
 

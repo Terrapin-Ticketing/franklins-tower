@@ -52,7 +52,7 @@ contract('EventManager', function(accounts) {
     });
   });
 
-  it('should create an event and issue tickets', function() {
+  it.only('should create an event and issue tickets', function() {
     let terrapin;
 
     function createEvent(name, price, i) {
@@ -87,13 +87,13 @@ contract('EventManager', function(accounts) {
       .then(() => {
         let i = 0;
         return pasync.eachSeries([
-          { name: 'The String Cheese Incident', price: 100 }
+          { name: 'The String Cheese Incident', price: 1 }
           // { name: 'Phish @ MSG', price: 80 },
           // { name: 'DSO @ Taft', price: 40 },
           // { name: 'Marcus King Band @ Hamilton', price: 15 },
           // { name: 'Greensky Bluegrass in the woods', price: 75 }
         ], (obj) => {
-          return createEvent(obj.name, obj.price, i)
+          return createEvent(obj.name, (obj.price * 1000000000000000000), i)
             .then(() => {
               i++;
             });
@@ -101,9 +101,9 @@ contract('EventManager', function(accounts) {
       });
   });
 
-  it.only('should buy ticket', function() {
+  it('should buy ticket', function() {
     let eventName = 'String Cheese Incident @ Colorado';
-    let price = 700;
+    let price = 1;
 
     let terrapin;
     return deployed().then((_terrapin) => {
