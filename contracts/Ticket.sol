@@ -25,6 +25,7 @@ contract Ticket {
 		if (!msg.sender.send(extra)) throw;
 		if (!publisher.send(msg.value)) throw;
 		// set new owner
+
 		owner = msg.sender;
 	}
 }
