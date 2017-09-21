@@ -15,12 +15,12 @@ contract Ticket {
 		publisher = _publisher;
 		owner = _owner;
 		eventAddress = _eventAddress;
-		price = _price;
+		price = _price; // in Wei
 	}
 
-	function buyTicket() payable { // NOTE: test exact price
-		require(owner != publisher);
-		require(msg.value < price);
+	function buyTicket() payable {
+		require(owner == publisher);
+		require(msg.value > price); // in Wei
 		// should never be negative because of previous check
 		uint extra = msg.value - price;
 		// return any extra funds back to sender

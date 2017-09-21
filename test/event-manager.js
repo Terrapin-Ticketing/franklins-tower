@@ -87,8 +87,8 @@ contract('EventManager', function(accounts) {
       .then(() => {
         let i = 0;
         return pasync.eachSeries([
-          { name: 'The String Cheese Incident', price: 1 }
-          // { name: 'Phish @ MSG', price: 80 },
+          { name: 'The String Cheese Incident', price: 1 },
+          { name: 'Phish @ MSG', price: 80 }
           // { name: 'DSO @ Taft', price: 40 },
           // { name: 'Marcus King Band @ Hamilton', price: 15 },
           // { name: 'Greensky Bluegrass in the woods', price: 75 }

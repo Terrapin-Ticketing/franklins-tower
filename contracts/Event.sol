@@ -24,7 +24,7 @@ contract Event {
 			owner,
 			owner,
 			address(this),
-			_price
+			_price // in Wei
 		));
 	}
 
