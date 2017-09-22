@@ -31,7 +31,7 @@ contract Ticket {
 	}
 
 	function transferTicket(address _recipient) {
-		if (owner != msg.sender) revert();
+		require(owner == msg.sender);
 		owner = _recipient;
 	}
 
