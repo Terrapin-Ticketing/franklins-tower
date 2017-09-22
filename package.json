@@ -1,7 +1,7 @@
 {
   "scripts": {
     "test": "npm run clean; truffle compile; truffle test; npm run upload",
-    "deploy": "truffle compile; truffle migrate;",
+    "deploy": "truffle compile; truffle migrate; npm run upload",
     "upload": "node ./upload.js",
     "start": "npm run deploy; npm run upload;",
     "clean": "rm -rf build"
