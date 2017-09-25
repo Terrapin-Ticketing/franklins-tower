@@ -7,32 +7,42 @@ pragma solidity ^0.4.4;
 
 contract Ticket {
 	address public owner;
-	address public publisher;
+	address public issuer;
 	address public eventAddress;
+	bool public isRedeemed;
 	uint public price;
 
-	function Ticket(address _publisher, address _owner, address _eventAddress, uint _price) {
-		publisher = _publisher;
+	function Ticket(address _issuer, address _owner, address _eventAddress, uint _price) {
+		issuer = _issuer;
 		owner = _owner;
+		isRedeemed = false;
 		eventAddress = _eventAddress;
 		price = _price; // in Wei
 	}
 
 	function buyTicket() payable {
-		require(owner == publisher);
+		require(owner == issuer);
+		require(isRedeemed == false);
 		require(msg.value > price); // in Wei
 		// should never be negative because of previous check
 		uint extra = msg.value - price;
 		// return any extra funds back to sender
 		if (!msg.sender.send(extra)) revert();
-		if (!publisher.send(msg.value)) revert();
+		if (!issuer.send(msg.value)) revert();
 		// set new owner
 		owner = msg.sender;
 	}
 
 	function transferTicket(address _recipient) {
 		require(owner == msg.sender);
+		require(isRedeemed == false);
 		owner = _recipient;
+	}
+
+	function redeemTicket() {
+		require(msg.sender == issuer);
+		require(isRedeemed == false);
+		isRedeemed = true;
 	}
 
 }
