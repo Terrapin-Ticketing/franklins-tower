@@ -9,13 +9,12 @@ contract Ticket {
 	address public owner;
 	address public issuer;
 	address public eventAddress;
-	bool public isRedeemed;
+	bool public isRedeemed = false;
 	uint public price;
 
 	function Ticket(address _issuer, address _owner, address _eventAddress, uint _price) {
 		issuer = _issuer;
 		owner = _owner;
-		isRedeemed = false;
 		eventAddress = _eventAddress;
 		price = _price; // in Wei
 	}
@@ -23,7 +22,7 @@ contract Ticket {
 	function buyTicket() payable {
 		require(owner == issuer);
 		require(isRedeemed == false);
-		require(msg.value > price); // in Wei
+		require(msg.value >= price); // in Wei
 		// should never be negative because of previous check
 		uint extra = msg.value - price;
 		// return any extra funds back to sender
