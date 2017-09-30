@@ -7,20 +7,21 @@ let mnemonic = 'accuse extend real hat they eagle worry brisk earn drop deputy g
 
 module.exports = {
   networks: {
-    // development: {
-    //   host: 'localhost',
-    //   port: 8545,
-    //   network_id: '*' // Match any network id
-    // },
     development: {
       host: 'localhost',
       port: 8545,
       network_id: '*' // Match any network id
     },
+    // truffle migrate --network live
     ropsten: {
       provider: new HDWalletProvider(mnemonic, 'https://ropsten.infura.io/'+infura_apikey),
       // provider: 'https://ropsten.infura.io/',
       network_id: 3
+    },
+    demo: {
+      host: '138.197.106.138',
+      port: 8545,
+      network_id: '*'
     }
   }
 };
