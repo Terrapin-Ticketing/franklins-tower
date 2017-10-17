@@ -6,17 +6,19 @@ pragma solidity ^0.4.4;
 // token, see: https://github.com/ConsenSys/Tokens. Cheers!
 
 contract Ticket {
+	address public master;
 	address public owner;
 	address public issuer;
 	address public eventAddress;
 	bool public isRedeemed = false;
 	uint public usdPrice;
 
-	function Ticket(address _issuer, address _owner, address _eventAddress, uint _usdPrice) {
+	function Ticket(address _master, address _issuer, address _owner, uint _usdPrice, address _eventAddress) {
+		master = _master;
 		issuer = _issuer;
 		owner = _owner;
-		eventAddress = _eventAddress;
 		usdPrice = _usdPrice; // in Wei
+		eventAddress = _eventAddress;
 	}
 
 	// TODO: Make usable for USD...this is broken
@@ -31,6 +33,11 @@ contract Ticket {
 		if (!issuer.send(msg.value)) revert();*/
 		// set new owner
 		owner = msg.sender;
+	}
+
+	function setOwner(address _newOwner) { // 0.9
+		require(msg.sender == master);
+		owner = _newOwner;
 	}
 
 	function transferTicket(address _recipient) {
