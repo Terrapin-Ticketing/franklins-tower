@@ -10,24 +10,25 @@ contract Ticket {
 	address public issuer;
 	address public eventAddress;
 	bool public isRedeemed = false;
-	uint public price;
+	uint public usdPrice;
 
-	function Ticket(address _issuer, address _owner, address _eventAddress, uint _price) {
+	function Ticket(address _issuer, address _owner, address _eventAddress, uint _usdPrice) {
 		issuer = _issuer;
 		owner = _owner;
 		eventAddress = _eventAddress;
-		price = _price; // in Wei
+		usdPrice = _usdPrice; // in Wei
 	}
 
+	// TODO: Make usable for USD...this is broken
 	function buyTicket() payable {
 		require(owner == issuer);
 		require(isRedeemed == false);
-		require(msg.value >= price); // in Wei
+		/*require(msg.value >= usdPrice); // in Wei
 		// should never be negative because of previous check
 		uint extra = msg.value - price;
 		// return any extra funds back to sender
 		if (!msg.sender.send(extra)) revert();
-		if (!issuer.send(msg.value)) revert();
+		if (!issuer.send(msg.value)) revert();*/
 		// set new owner
 		owner = msg.sender;
 	}
