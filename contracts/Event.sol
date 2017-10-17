@@ -8,12 +8,16 @@ import "./Ticket.sol";
 // token, see: https://github.com/ConsenSys/Tokens. Cheers!
 
 contract Event {
+	address public master;
+
 	address public owner;
-	address[] public tickets;
+	address[] public tickets; // optimization
+	uint public totalTickets = 0;
 
 	bytes32 public name;
 
-	function Event(address _owner, bytes32 _name) {
+	function Event(address _master, address _owner, bytes32 _name) {
+		master = _master;
 		owner = _owner;
 		name = _name;
 	}
@@ -21,16 +25,19 @@ contract Event {
 	function printTicket(uint _price) {
 		if (msg.sender != owner) throw;
 		tickets.push(new Ticket(
+			master,
 			owner,
 			owner,
-			address(this),
-			_price // in Wei
+			_price, // in Wei
+			address(this)
 		));
+		totalTickets++;
 	}
 
 	function getTickets() constant returns(address[]) {
 		return tickets;
 	}
+
 
 	/*function buyTicket(address _ticketAddress) payable {
 		Ticket ticket = Ticket(_ticketAddress);

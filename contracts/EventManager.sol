@@ -8,21 +8,21 @@ import "./Event.sol";
 // token, see: https://github.com/ConsenSys/Tokens. Cheers!
 
 contract EventManager {
-	address public owner;
+	address public master;
 	address[] public events;
 
 	event EventCreated(address _eventAddress);
 
 	/*mapping (address => address[]) guestList;
-
 	address[] tickets = guestList[walletAddress]*/
 
 	function EventManager() {
-		owner = msg.sender;
+		master = msg.sender;
 	}
 
 	function createEvent(bytes32 _eventName) {
 		Event ev = new Event(
+			master,
 			msg.sender,
 			_eventName
 		);
