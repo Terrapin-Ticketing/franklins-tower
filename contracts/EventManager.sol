@@ -20,8 +20,11 @@ contract EventManager {
 		master = msg.sender;
 	}
 
-	function createEvent(bytes32 _eventName, bytes32 _usdPrice, bytes32 _imageUrl, bytes32 _date,
-		bytes32 _venueName, bytes32 _venueAddress, bytes32 _venueCity, bytes32 _venueState, bytes32 _venueZip) {
+	function createEvent(bytes32 _eventName, bytes32 _usdPrice,
+		bytes32 _imageUrl, bytes32 _date, bytes32 _venueName,
+		bytes32 _venueAddress, bytes32 _venueCity, bytes32 _venueState,
+		bytes32 _venueZip
+	) {
 		Event ev = new Event(
 			master,
 			msg.sender,

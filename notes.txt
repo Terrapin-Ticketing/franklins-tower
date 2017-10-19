@@ -1,35 +1,10 @@
 NOTES:
 
-DAVID WILBRAND
-
-subject our equity to vesting
-
-setting equity aside
-
-Ohio Secitary of State website
-  forms
-  articles of organization LLC
-    both as organizers
-    sign
-    mail it to OSS (Ohio Secitary of State)
-
-    website should show we are an organizationf
-    proof we filed LLC
-    tax id - EIN (employment identification number)
-      free through IRS website
-
-    take to bank
+rewrite using zepplin-solidity at some point
 
 
-IP assignment
-Employment Letters
-Operating agreement
-
-anything we need to do before our first sale:
-Accountant
-1. partnership tax law
-2. sales tax/ use tax?
-
-
-CPA (hannah???)
-do you know anything about partnership taxes
+Requirements:
+- fast user lookups (which tickets belong to person x)
+- zepplin
+- self destruct
+- inharitance

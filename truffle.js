@@ -5,6 +5,8 @@ const HDWalletProvider = require('truffle-hdwallet-provider');
 let infura_apikey = 'ErkMqD1W4xWqfkfqNBnt';
 let mnemonic = 'accuse extend real hat they eagle worry brisk earn drop deputy guide';
 
+// testrpc --mnemonic "my test example" --accounts 50
+
 module.exports = {
   networks: {
     development: {

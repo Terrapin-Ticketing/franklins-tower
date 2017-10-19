@@ -5,7 +5,9 @@ pragma solidity ^0.4.4;
 // coin/token contracts. If you want to create a standards-compliant
 // token, see: https://github.com/ConsenSys/Tokens. Cheers!
 
-contract Ticket {
+import "./usingOraclize.sol";
+
+contract Ticket is usingOraclize {
 	address public master;
 	address public owner;
 	address public issuer;
@@ -13,7 +15,14 @@ contract Ticket {
 	bool public isRedeemed = false;
 	uint public usdPrice;
 
+	bytes32 public oraclizeID;
+
+	struct Tx { address sender; uint value; }
+	mapping(bytes32 => Tx) public txIDs;
+
 	function Ticket(address _master, address _issuer, address _owner, uint _usdPrice, address _eventAddress) {
+		OAR = OraclizeAddrResolverI(0xc2556d55997FeEA408618296d18b7438DEF238A7);
+
 		master = _master;
 		issuer = _issuer;
 		owner = _owner;
@@ -21,18 +30,36 @@ contract Ticket {
 		eventAddress = _eventAddress;
 	}
 
-	// TODO: Make usable for USD...this is broken
+	function __callback(bytes32 _oraclizeID, string _result) {
+		require(msg.sender == oraclize_cbAddress());
+		uint etherPrice = parseInt(_result, 2);
+
+		uint amountRequired = usdPrice / etherPrice;
+
+		uint oraclizeFee = 2; // cents
+		uint gasPrice = 5;
+		uint offsetCost = (oraclizeFee / etherPrice) + (gasPrice / etherPrice);
+
+		Tx tx = txIDs[_oraclizeID];
+		uint valueRemaining = tx.value - offsetCost; //
+
+		if (valueRemaining < amountRequired) return tx.sender.transfer(valueRemaining); // refund user
+
+		uint excessFunds = valueRemaining - amountRequired; // calculate any excess funds
+		tx.sender.transfer(excessFunds); // return any extra funds
+		issuer.transfer(amountRequired); // send ether to event creater
+		owner = tx.sender;
+	}
+
 	function buyTicket() payable {
-		require(owner == issuer);
-		require(isRedeemed == false);
-		/*require(msg.value >= usdPrice); // in Wei
-		// should never be negative because of previous check
-		uint extra = msg.value - price;
-		// return any extra funds back to sender
-		if (!msg.sender.send(extra)) revert();
-		if (!issuer.send(msg.value)) revert();*/
-		// set new owner
-		owner = msg.sender;
+		require(owner == issuer); // make sure ticket is not owned by someone else
+		require(isRedeemed == false); // make sure ticket hasn't already been redeemed
+
+		oraclizeID = oraclize_query("URL","json(https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD).USD");
+
+		txIDs[oraclizeID] = Tx(msg.sender, msg.value);
+
+		// need the ability to refund if oracalize doesn't work
 	}
 
 	function setOwner(address _newOwner) { // 0.9
@@ -52,4 +79,7 @@ contract Ticket {
 		isRedeemed = true;
 	}
 
+	function getBalance() constant returns (uint) {
+		return this.balance;
+	}
 }
