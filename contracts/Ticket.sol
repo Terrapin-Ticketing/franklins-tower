@@ -20,6 +20,9 @@ contract Ticket is usingOraclize {
 	struct Tx { address sender; uint value; }
 	mapping(bytes32 => Tx) public txIDs;
 
+	/*Event*/
+	event Log(uint num);
+
 	function Ticket(address _master, address _issuer, address _owner, uint _usdPrice, address _eventAddress) {
 		OAR = OraclizeAddrResolverI(0xc2556d55997FeEA408618296d18b7438DEF238A7);
 
@@ -32,23 +35,20 @@ contract Ticket is usingOraclize {
 
 	function __callback(bytes32 _oraclizeID, string _result) {
 		require(msg.sender == oraclize_cbAddress());
-		uint etherPrice = parseInt(_result, 2);
+		uint etherPriceUSDCents = parseInt(_result, 2);
 
-		uint amountRequired = usdPrice / etherPrice;
-
-		uint oraclizeFee = 2; // cents
-		uint gasPrice = 5;
-		uint offsetCost = (oraclizeFee / etherPrice) + (gasPrice / etherPrice);
+		uint pricePerCent = 1 ether / etherPriceUSDCents;
+		uint amountRequired = pricePerCent * usdPrice;
 
 		Tx tx = txIDs[_oraclizeID];
-		uint valueRemaining = tx.value - offsetCost; //
 
-		if (valueRemaining < amountRequired) return tx.sender.transfer(valueRemaining); // refund user
+		if (tx.value < amountRequired) return tx.sender.transfer(tx.value); // refund user
 
-		uint excessFunds = valueRemaining - amountRequired; // calculate any excess funds
+		uint excessFunds = tx.value - amountRequired; // calculate any excess funds
 		tx.sender.transfer(excessFunds); // return any extra funds
 		issuer.transfer(amountRequired); // send ether to event creater
 		owner = tx.sender;
+		Log(this.balance);
 	}
 
 	function buyTicket() payable {
@@ -56,7 +56,6 @@ contract Ticket is usingOraclize {
 		require(isRedeemed == false); // make sure ticket hasn't already been redeemed
 
 		oraclizeID = oraclize_query("URL","json(https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD).USD");
-
 		txIDs[oraclizeID] = Tx(msg.sender, msg.value);
 
 		// need the ability to refund if oracalize doesn't work

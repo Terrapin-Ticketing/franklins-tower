@@ -66,6 +66,12 @@ contract('EventManager', function(accounts) {
           });
       })
       .then((ticketInstance) => {
+        let event = ticketInstance.Log();
+        event.watch((err, result) => {
+          if (err) return console.log('ERROR:', err);
+          console.log('RESULTL:', String(result.args.num));
+        });
+
         return Promise.resolve()
           .then(() => ticketInstance.usdPrice.call())
           .then((price) => {
@@ -79,7 +85,7 @@ contract('EventManager', function(accounts) {
             return ticketInstance.buyTicket({
               from: accounts[2],
               gas: 4700000,
-              value: weiPrice * 2
+              value: (weiPrice) + 300000000000
             });
           })
           .then(() => {
@@ -87,7 +93,7 @@ contract('EventManager', function(accounts) {
               console.log('waiting');
               setTimeout(() => {
                 resolve();
-              }, 55000);
+              }, 60000);
             });
           })
           .then(() => ticketInstance.owner.call())
