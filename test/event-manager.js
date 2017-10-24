@@ -31,12 +31,6 @@ contract('EventManager', function(accounts) {
     let terrapin;
     return deployed().then((_terrapin) => {
       terrapin = _terrapin; // make global for use in later "then"s
-      // console.log(JSON.stringify(terrapin.abi, null, '  '), terrapin.address);
-
-      // bytes32 _eventName, bytes32 _usdPrice,
-      // bytes32 _imageUrl, bytes32 _date, bytes32 _venueName,
-      // bytes32 _venueAddress, bytes32 _venueCity, bytes32 _venueState,
-      // bytes32 _venueZip
 
       return terrapin.createEvent(
         eventName, 1000, 'someurl', 'date', 'venueName', 'vanueAddress 123',
