@@ -6,6 +6,8 @@ let EventManager = artifacts.require('./EventManager.sol');
 let Event = artifacts.require('./Event.sol');
 let Ticket = artifacts.require('./Ticket.sol');
 
+let requestPromise = require('request-promise');
+
 web3.utils.toAsciiOriginal = web3.utils.toAscii;
 web3.utils.toAscii = function(input) { return web3.utils.toAsciiOriginal(input).replace(/\u0000/g, ''); };
 
@@ -22,15 +24,15 @@ function guidGenerator() {
 
 let wei = 1000000000000000000;
 
-
 contract('EventManager', function(accounts) {
-  it.only('should connect to oracleize', () => {
+  before(function() {
     let eventName = 'String Cheese Incident @ Colorado';
     let price = 1;
 
     let terrapin;
     return deployed().then((_terrapin) => {
       terrapin = _terrapin; // make global for use in later "then"s
+      this.terrapinInstance = terrapin;
 
       return terrapin.createEvent(
         eventName, 1000, 'someurl', 'date', 'venueName', 'vanueAddress 123',
@@ -40,7 +42,7 @@ contract('EventManager', function(accounts) {
           gas: 4700000
         });
     })
-      .then((tx) => terrapin.getEvents.call())
+      .then(() => terrapin.getEvents.call())
       .then((eventAddresses) => {
         let eventInstance = Event.at(eventAddresses[0]);
         return eventInstance.printTicket(price, {
@@ -49,160 +51,73 @@ contract('EventManager', function(accounts) {
         }).then(() => eventInstance);
       })
       .then((eventInstance) => {
-        return eventInstance.getTickets.call()
-          .then((ticketAddrs) => Ticket.at(ticketAddrs[0]))
-          .then((ticketInstance) => {
-            return ticketInstance.owner.call()
-              .then((owner) => {
-                console.log('original owner: ', owner);
-              })
-              .then(() => ticketInstance);
-          });
+        this.eventInstance = eventInstance;
+      });
+  });
+
+  before(function() {
+    return requestPromise('https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD')
+      .then((res) => {
+        this.etherPrice = JSON.parse(res).USD;
+      });
+  });
+
+  it('should buy a ticket', function() {
+    let ticketInstance, owner;
+    let eventInstance = this.eventInstance;
+
+    return eventInstance.getTickets.call()
+      .then((ticketAddresses) => Ticket.at(ticketAddresses[0]))
+      .then((_ticketInstance) => {
+        ticketInstance = _ticketInstance;
+        return ticketInstance.buyTicket({
+          from: accounts[2],
+          gas: 4700000,
+          value: wei * 20
+        });
       })
-      .then((ticketInstance) => {
-        let event = ticketInstance.Log();
-        event.watch((err, result) => {
-          if (err) return console.log('ERROR:', err);
-          console.log('RESULTL:', String(result.args.num));
-        });
-
-        return Promise.resolve()
-          .then(() => ticketInstance.usdPrice.call())
-          .then((price) => {
-            // TODO: make this get balance from https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD
-            let ether = 30980; // cost in cents
-            let weiPrice = Math.ceil(price / ether * wei);
-            console.log('weiPrice', weiPrice);
-            return weiPrice;
-          })
-          .then((weiPrice) => {
-            return ticketInstance.buyTicket({
-              from: accounts[2],
-              gas: 4700000,
-              value: (weiPrice) + 300000000000
-            });
-          })
-          .then(() => {
-            return new Promise((resolve) => {
-              console.log('waiting');
-              setTimeout(() => {
-                resolve();
-              }, 60000);
-            });
-          })
-          .then(() => ticketInstance.owner.call())
-          .then((owner) => {
-            console.log('new owner:', owner);
-          })
-          .then(() => ticketInstance.getBalance.call())
-          .then((balance) => {
-            console.log('ticket balance:', balance);
-          });
-      });
-  });
-
-
-  it('should init manager', function() {
-    return deployed().then((terrapin) => terrapin.owner.call())
-      .then((ownerAddress) => {
-        assert(ownerAddress === accounts[0]);
-        // assert.equal(balance.valueOf(), 10000, "10000 wasn't in the first account");
-      });
-  });
-
-  it('should create 5 events', function() {
-    let terrapin;
-    return deployed().then((_terrapin) => {
-      terrapin = _terrapin; // make global for use in later "then"s
-      // console.log(JSON.stringify(terrapin.abi, null, '  '), terrapin.address);
-      let numTimes = [ 1, 2, 3, 4, 5, 6 ];
-      return pasync.eachSeries(numTimes, () => {
-        return terrapin.createEvent(
-          guidGenerator(),
-          {
-            from: accounts[1],
-            gas: 4700000
-          }
-        )
-          .then((tx) => web3.eth.getTransactionReceipt(tx.tx))
-          .then((test) => {
-            console.log('test:', test);
-          });
-      });
-    });
-  });
-
-  it('should create an event and issue tickets', function() {
-    let terrapin;
-
-    function createEvent(name, price, i) {
-      // console.log('i', i);
-      var event = terrapin.EventCreated(null, () => {
-        console.log('event triggred');
-      });
-
-      // // watch for changes
-      // event.watch(function(error, result) {
-      //   if (!error) {
-      //     console.log(result);
-      //   }
-      //   console.log('result!', result);
-      // });
-
-      // // Or pass a callback to start watching immediately
-      // var event = myContractInstance.MyEvent([{valueA: 23}] [, additionalFilterObject] , function(error, result){
-      //   if (!error)
-      //     console.log(result);
-      // });
-
-      return terrapin.createEvent(name,
-        {
-          from: accounts[1],
-          gas: 4700000
-        }
-      )
-        .then(() => terrapin.getEvents.call())
-        .then((eventAddrs) => Event.at(eventAddrs[i]))
-        .then((eventInstance) => {
-          // shuuld be done with doWhielst
-          // let numTickets = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
-          let numTickets = [1, 2, 3, 4, 5, 6, 7];
-          return pasync.eachSeries(numTickets, () => {
-            return eventInstance.printTicket(price, {
-              from: accounts[1],
-              gas: 4700000
-            }).then((tx) => {
-              // console.log(tx);
-            });
-          });
-        });
-    }
-
-    return deployed().then((_terrapin) => {
-      terrapin = _terrapin; // make global for use in later "then"s
-      console.log('address: ', terrapin.address);
-    })
       .then(() => {
-        let i = 0;
-        return pasync.eachSeries([
-          { name: 'The String Cheese Incident', price: 1 },
-          { name: 'Phish @ MSG', price: 80 }
-          // { name: 'DSO @ Taft', price: 40 },
-          // { name: 'Marcus King Band @ Hamilton', price: 15 },
-          // { name: 'Greensky Bluegrass in the woods', price: 75 }
-        ], (obj) => {
-          return createEvent(obj.name, (obj.price * 1000000000000000000), i)
-            .then(() => {
-              i++;
-            });
+        return ticketInstance.owner.call().then((_owner) => {
+          owner = _owner;
+        });
+      })
+      .then(() => {
+        let boughtEvent = ticketInstance.Bought();
+        return new Promise((resolve, reject) => {
+          boughtEvent.watch((err, result) => {
+            if (err) return reject(err);
+            assert(Boolean(result.args.status) === true);
+            resolve();
+            boughtEvent.stopWatching();
+          });
+        });
+      })
+      .then(() => {
+        return ticketInstance.owner.call().then((newOwner) => {
+          assert(owner !== newOwner);
         });
       });
   });
 
-  it('should buy ticket', function() {
+  it('should call masterBuy from master account', function() {
+    let ticketInstance;
+    let eventInstance = this.eventInstance;
+    return eventInstance.getTickets.call()
+      .then((ticketAddresses) => Ticket.at(ticketAddresses[0]))
+      .then((_ticketInstance) => ticketInstance = _ticketInstance)
+      .then(() => {
+        return ticketInstance.masterBuy(accounts[1], {
+          from: accounts[0],
+          gas: 4700000
+        });
+      })
+      .then(() => ticketInstance.isForSale.call())
+      .then((_isForSale) => {
+        return ticketInstance.owner.call().then((_owner) => {
+          assert(_owner === accounts[1]);
+          assert(_isForSale === false);
+        });
+      });
   });
 
-  // it('should', function() {
-  //   return x;
-  // });
 });

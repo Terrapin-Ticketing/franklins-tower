@@ -4,8 +4,8 @@
     "deploy": "rm -rf ./build && truffle compile && truffle migrate && npm run upload",
     "upload": "node ./upload.js",
     "clean": "rm -rf build",
-
     "start": "npm run deploy",
+    "test": "npm run clean && truffle compile && truffle test",
     "dev": "rm -rf ./build && truffle compile && truffle migrate && npm run upload",
     "demo": "rm -rf ./build && truffle compile && truffle migrate --network demo && NODE_ENV=demo node ./upload.js",
     "ropsten": "rm -rf ./build && truffle compile && truffle migrate --network ropsten && npm run upload"
@@ -26,11 +26,14 @@
     "mongoose": "^4.11.7",
     "pasync": "^1.4.2",
     "request": "^2.81.0",
-    "request-promise": "^4.2.1",
+    "request-promise": "^4.2.2",
     "restify": "^5.2.0",
     "restify-cors-middleware": "^1.0.1",
     "truffle-hdwallet-provider": "0.0.3",
     "type-check": "^0.3.2",
     "web3": "^1.0.0-beta.18"
+  },
+  "devDependencies": {
+    "axios": "^0.17.0"
   }
 }

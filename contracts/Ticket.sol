@@ -13,6 +13,7 @@ contract Ticket is usingOraclize {
 	address public issuer;
 	address public eventAddress;
 	bool public isRedeemed = false;
+	bool public isForSale = true;
 	uint public usdPrice;
 
 	bytes32 public oraclizeID;
@@ -22,9 +23,14 @@ contract Ticket is usingOraclize {
 
 	/*Event*/
 	event Log(uint num);
+	event Bought(bool status);
 
-	function Ticket(address _master, address _issuer, address _owner, uint _usdPrice, address _eventAddress) {
-		OAR = OraclizeAddrResolverI(0xc2556d55997FeEA408618296d18b7438DEF238A7);
+	function Ticket(
+		address _master, address _issuer, address _owner,
+		uint _usdPrice, address _eventAddress
+	) {
+		// initialize oracle service
+		OAR = OraclizeAddrResolverI(0xbdEE34FAc2cEca5Cd62B1264D111D1b085116F2F);
 
 		master = _master;
 		issuer = _issuer;
@@ -45,23 +51,30 @@ contract Ticket is usingOraclize {
 		if (tx.value < amountRequired) return tx.sender.transfer(tx.value); // refund user
 
 		uint excessFunds = tx.value - amountRequired; // calculate any excess funds
+		owner.transfer(amountRequired); // send ether to event creater
 		tx.sender.transfer(excessFunds); // return any extra funds
-		issuer.transfer(amountRequired); // send ether to event creater
 		owner = tx.sender;
-		Log(this.balance);
+		isForSale = false; // ticket is not for sale anylonger
+		/*Log(this.balance);*/
+		Bought(true);
 	}
 
 	function buyTicket() payable {
-		require(owner == issuer); // make sure ticket is not owned by someone else
+		require(isForSale);
 		require(isRedeemed == false); // make sure ticket hasn't already been redeemed
 
 		oraclizeID = oraclize_query("URL","json(https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD).USD");
 		txIDs[oraclizeID] = Tx(msg.sender, msg.value);
-
 		// need the ability to refund if oracalize doesn't work
 	}
 
-	function setOwner(address _newOwner) { // 0.9
+	function masterBuy(address _newOwner) {
+		require(msg.sender == master);
+		owner = _newOwner;
+		isForSale = false;
+	}
+
+	function setOwner(address _newOwner) {
 		require(msg.sender == master);
 		owner = _newOwner;
 	}
@@ -72,13 +85,19 @@ contract Ticket is usingOraclize {
 		owner = _recipient;
 	}
 
+	function setIsForSale(bool _isForSale) {
+		require(msg.sender == owner || msg.sender == master);
+		isForSale = _isForSale;
+	}
+
 	function redeemTicket() {
 		require(msg.sender == issuer);
 		require(isRedeemed == false);
 		isRedeemed = true;
+		isForSale = false;
 	}
 
-	function getBalance() constant returns (uint) {
+	function getBalance() constant returns (uint) { // should be 0
 		return this.balance;
 	}
 }
