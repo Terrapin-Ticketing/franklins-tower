@@ -30,7 +30,7 @@ contract Ticket is usingOraclize {
 		uint _usdPrice, address _eventAddress
 	) {
 		// initialize oracle service
-		OAR = OraclizeAddrResolverI(0xbdEE34FAc2cEca5Cd62B1264D111D1b085116F2F);
+		OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
 
 		master = _master;
 		issuer = _issuer;
