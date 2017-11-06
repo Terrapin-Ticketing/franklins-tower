@@ -27,22 +27,12 @@ contract Event {
 	bytes32 public venueZip;
 
 
-	function Event(
-		address _master, address _owner, bytes32 _name, bytes32 _usdPrice,
-		bytes32 _imageUrl, bytes32 _date, bytes32 _venueName, bytes32 _venueAddress,
-		bytes32 _venueCity, bytes32 _venueState, bytes32 _venueZip
-	) {
+	function Event(address _master, address _owner, bytes32 _name, bytes32 _usdPrice, bytes32 _date) {
 		master = _master;
 		owner = _owner;
 		name = _name;
 		usdPrice = _usdPrice;
-		imageUrl = _imageUrl;
 		date = _date;
-		venueName = _venueName;
-		venueAddress = _venueAddress;
-		venueCity = _venueCity;
-		venueState = _venueState;
-		venueZip = _venueZip;
 	}
 
 	function printTicket(uint _usdPrice) {
