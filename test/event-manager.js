@@ -36,8 +36,7 @@ contract('EventManager', function(accounts) {
       this.terrapinInstance = terrapin;
 
       return terrapin.createEvent(
-        eventName, 1000, 'someurl', 'date', 'venueName', 'vanueAddress 123',
-        'city', 'state', 'zip',
+        eventName, 1000, 'date',
         {
           from: accounts[1],
           gas: 4700000
