@@ -13,6 +13,10 @@ contract Event {
 	address public master;
 	address public owner;
 
+	// userAddress -> owned tickets[]
+	mapping (address => address[]) private ticketOwnerTickets;
+	address[] private ticketOwnerIndex;
+
 	address[] private tickets; // optimization
 
 	uint public soldTickets = 0;
@@ -44,6 +48,7 @@ contract Event {
 	function printTicket(address _ticketOwner, uint _usdPrice) {
 		require(int(soldTickets) <= maxTickets || maxTickets == -1);
 		Ticket ticket = new Ticket(
+			terrapin,
 			master,
 			owner,
 			_ticketOwner,

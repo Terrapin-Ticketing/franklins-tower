@@ -4,15 +4,17 @@ pragma solidity ^0.4.10;
 // It is not standards compatible and cannot be expected to talk to other
 // coin/token contracts. If you want to create a standards-compliant
 // token, see: https://github.com/ConsenSys/Tokens. Cheers!
-
+import "./EventManager.sol";
 import "./usingOraclize.sol";
 import "./Event.sol";
 
 contract Ticket is usingOraclize {
+	address public terrapin;
 	address public master;
 	address public owner;
 	address public issuer;
 	address public eventAddress;
+
 	bool public isRedeemed = false;
 	bool public isForSale = true;
 	uint public usdPrice;
@@ -27,15 +29,16 @@ contract Ticket is usingOraclize {
 	event Bought(bool status);
 
 	function Ticket(
-		address _master, address _issuer, address _owner,
+		address _terrapin, address _master, address _issuer, address _owner,
 		uint _usdPrice, address _eventAddress
 	) {
 		// initialize oracle service
 		OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
 
+		terrapin = _terrapin;
 		master = _master;
 		issuer = _issuer;
-		owner = _owner;
+		setOwner(_owner);
 		usdPrice = _usdPrice; // in Wei
 		eventAddress = _eventAddress;
 	}
@@ -54,7 +57,7 @@ contract Ticket is usingOraclize {
 		uint excessFunds = tx.value - amountRequired; // calculate any excess funds
 		owner.transfer(amountRequired); // send ether to event creater
 		tx.sender.transfer(excessFunds); // return any extra funds
-		owner = tx.sender;
+		setOwner(tx.sender);
 		isForSale = false; // ticket is not for sale anylonger
 		/*Log(this.balance);*/
 		Bought(true);
@@ -71,19 +74,14 @@ contract Ticket is usingOraclize {
 
 	function masterBuy(address _newOwner) {
 		require(msg.sender == master);
-		owner = _newOwner;
+		setOwner(_newOwner);
 		isForSale = false;
-	}
-
-	function setOwner() {
-		require(msg.sender == address(this));
-		Event ev = Event(eventAddress);
 	}
 
 	function transferTicket(address _recipient) {
 		require(msg.sender == owner);
 		require(isRedeemed == false);
-		owner = _recipient;
+		setOwner(_recipient);
 	}
 
 	function setIsForSale(bool _isForSale) {
@@ -100,5 +98,10 @@ contract Ticket is usingOraclize {
 
 	function getBalance() constant returns (uint) { // should be 0
 		return this.balance;
+	}
+
+	function setOwner(address _owner) private {
+		owner = _owner;
+		/*return EventManager(terrapin).setTicketOwner(address(this), address(owner));*/
 	}
 }

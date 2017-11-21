@@ -10,13 +10,14 @@ import "./Event.sol";
 contract EventManager {
 	address public master;
 	address[] public events;
-	mapping(address => address[]) public eventIssuerLookupTable;
-	address test;
+
+	// eventIssuer => eventAddress[]
+	mapping(address => address[]) private eventIssuerLookupTable;
+
+	// ticketOwner => ticketAddress[]
+	mapping(address => address[]) private ticketOwnerLookupTable;
 
 	event EventCreated(address _eventAddress);
-
-	/*mapping (address => address[]) guestList;
-	address[] tickets = guestList[walletAddress]*/
 
 	function EventManager() {
 		master = msg.sender;
@@ -25,13 +26,14 @@ contract EventManager {
 	function createEvent(bytes32 _eventName, int _maxTickets,
 		uint _startDate, uint _endDate
 	) {
-		Event ev = new Event(address(this), master, msg.sender, _eventName,
-			_maxTickets, _startDate, _endDate);
+		Event ev = new Event(address(this),
+			master, msg.sender, _eventName, _maxTickets, _startDate, _endDate
+		);
+		address eventAddress = address(ev);
+		events.push(eventAddress);
+		eventIssuerLookupTable[msg.sender].push(eventAddress);
 		// dispatch an event
-		events.push(address(ev));
-		eventIssuerLookupTable[msg.sender].push(address(ev));
-		test = msg.sender;
-		EventCreated(address(ev));
+		EventCreated(eventAddress);
 	}
 
 	function getEvents() constant returns(address[]) {
@@ -40,5 +42,14 @@ contract EventManager {
 
 	function getEventsByOwner(address _owner) constant returns(address[]) {
 		return eventIssuerLookupTable[_owner];
+	}
+
+	function getOwnerTickets(address _owner) constant returns(address[]) {
+		return ticketOwnerLookupTable[_owner];
+	}
+
+	function setTicketOwner(address _ticket, address _owner) {
+		// TODO: require sent by ticket
+		ticketOwnerLookupTable[_owner].push(_ticket);
 	}
 }
