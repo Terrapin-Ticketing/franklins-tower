@@ -1,4 +1,4 @@
-pragma solidity ^0.4.4;
+pragma solidity ^0.4.10;
 
 // This is just a simple example of a coin-like contract.
 // It is not standards compatible and cannot be expected to talk to other
@@ -6,6 +6,7 @@ pragma solidity ^0.4.4;
 // token, see: https://github.com/ConsenSys/Tokens. Cheers!
 
 import "./usingOraclize.sol";
+import "./Event.sol";
 
 contract Ticket is usingOraclize {
 	address public master;
@@ -30,7 +31,7 @@ contract Ticket is usingOraclize {
 		uint _usdPrice, address _eventAddress
 	) {
 		// initialize oracle service
-		OAR = OraclizeAddrResolverI(0x113D45aF42083FBa857D8ba41EA0a9Ee11e8544C);
+		OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
 
 		master = _master;
 		issuer = _issuer;
@@ -74,13 +75,13 @@ contract Ticket is usingOraclize {
 		isForSale = false;
 	}
 
-	function setOwner(address _newOwner) {
-		require(msg.sender == master);
-		owner = _newOwner;
+	function setOwner() {
+		require(msg.sender == address(this));
+		Event ev = Event(eventAddress);
 	}
 
 	function transferTicket(address _recipient) {
-		require(owner == msg.sender);
+		require(msg.sender == owner);
 		require(isRedeemed == false);
 		owner = _recipient;
 	}

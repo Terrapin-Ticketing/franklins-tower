@@ -1,5 +1,6 @@
-pragma solidity ^0.4.4;
+pragma solidity ^0.4.10;
 
+import "./EventManager.sol";
 import "./Ticket.sol";
 
 // This is just a simple example of a coin-like contract.
@@ -8,16 +9,18 @@ import "./Ticket.sol";
 // token, see: https://github.com/ConsenSys/Tokens. Cheers!
 
 contract Event {
+	address public terrapin;
 	address public master;
-
 	address public owner;
-	address[] public tickets; // optimization
-	uint public totalTickets = 0;
+
+	address[] private tickets; // optimization
+
+	uint public soldTickets = 0;
+	int public maxTickets; // -1 means an unlimited supply
 
 	bytes32 public name;
-	bytes32 public usdPrice;
-	bytes32 public imageUrl;
-	bytes32 public date; // unix timestamp
+	uint public startDate; // unix timestamp
+	uint public endDate; // unix timestamp
 
 	// Venue Info
 	bytes32 public venueName;
@@ -26,39 +29,32 @@ contract Event {
 	bytes32 public venueState;
 	bytes32 public venueZip;
 
-
-	function Event(address _master, address _owner, bytes32 _name, bytes32 _usdPrice, bytes32 _date) {
+	function Event(address _terrapin, address _master, address _owner, bytes32 _name,
+		int _maxTickets, uint _startDate, uint _endDate
+	) {
+		terrapin = _terrapin;
+		maxTickets = _maxTickets; // -1 means an unlimited supply
 		master = _master;
 		owner = _owner;
 		name = _name;
-		usdPrice = _usdPrice;
-		date = _date;
+		startDate = _startDate;
+		endDate = _endDate;
 	}
 
-	function printTicket(uint _usdPrice) {
-		tickets.push(new Ticket(
+	function printTicket(address _ticketOwner, uint _usdPrice) {
+		require(int(soldTickets) <= maxTickets || maxTickets == -1);
+		Ticket ticket = new Ticket(
 			master,
 			owner,
-			owner,
+			_ticketOwner,
 			_usdPrice,
 			address(this)
-		));
-		totalTickets++;
+		);
+		tickets.push(ticket);
+		soldTickets++;
 	}
 
 	function getTickets() constant returns(address[]) {
 		return tickets;
 	}
-
-
-	/*function buyTicket(address _ticketAddress) payable {
-		Ticket ticket = Ticket(_ticketAddress);
-
-		if (ticket.owner() == owner) throw;
-		if (msg.value < ticket.price()) throw;
-		bool success = owner.send(msg.value);
-		if (!success) throw;
-
-	}*/
-
 }

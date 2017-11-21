@@ -1,6 +1,7 @@
 let Web3 = require('web3');
 let web3 = new Web3(new Web3.providers.HttpProvider('http://192.168.12.226:8545'));
 let pasync = require('pasync');
+let moment = require('moment');
 
 let EventManager = artifacts.require('./EventManager.sol');
 let Event = artifacts.require('./Event.sol');
@@ -22,21 +23,26 @@ function guidGenerator() {
   return (S4()+S4()+'-'+S4()+'-'+S4()+'-'+S4()+'-'+S4()+S4()+S4());
 }
 
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 let wei = 1000000000000000000;
-let TICKET_QTY = 10;
+let MAX_TICKETS = 10;
 
 contract('EventManager', function(accounts) {
   before(function() {
     let eventName = 'String Cheese Incident @ Colorado';
-    let price = 1;
+    let price = 1; // in cents
+    let startDate = moment().unix();
+    let endDate = moment().add(1, 'days').unix();
 
     let terrapin;
     return deployed().then((_terrapin) => {
       terrapin = _terrapin; // make global for use in later "then"s
       this.terrapinInstance = terrapin;
-
       return terrapin.createEvent(
-        eventName, 1000, 'date',
+        eventName, MAX_TICKETS, startDate, endDate,
         {
           from: accounts[1],
           gas: 4700000
@@ -45,8 +51,9 @@ contract('EventManager', function(accounts) {
       .then(() => terrapin.getEvents.call())
       .then((eventAddresses) => {
         let eventInstance = Event.at(eventAddresses[0]);
-        return pasync.eachSeries(new Array(TICKET_QTY), () => {
-          return eventInstance.printTicket(price, {
+        return pasync.eachSeries(new Array(MAX_TICKETS), () => {
+          let accountNum = getRandomInt(3, 40);
+          return eventInstance.printTicket(accounts[accountNum], price, {
             from: accounts[1],
             gas: 4700000
           });
@@ -67,6 +74,8 @@ contract('EventManager', function(accounts) {
         });
       })
       .then(() => {
+        // getTicketInstance function allows easy way to get unused ticekts
+        // by preceeding tests
         this.getTicketInstance = () => {
           return new Promise((resolve) => {
             resolve(ticketInstances[this.nextTicket++]);
@@ -179,6 +188,13 @@ contract('EventManager', function(accounts) {
       .then(() => ticketInstance.isForSale.call())
       .then((isForSale) => {
         assert(isForSale);
+      });
+  });
+
+  it('should lookup all events created by user', function() {
+    return this.terrapinInstance.getEventsByOwner.call(accounts[1])
+      .then((eventAddresses) => {
+        assert(eventAddresses.includes(this.eventInstance.address))
       });
   });
 
