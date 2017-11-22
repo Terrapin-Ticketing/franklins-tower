@@ -18,6 +18,7 @@ contract Ticket is usingOraclize {
 	bool public isRedeemed = false;
 	bool public isForSale = true;
 	uint public usdPrice;
+	bytes32 public ticketType;
 
 	bytes32 public oraclizeID;
 
@@ -30,7 +31,7 @@ contract Ticket is usingOraclize {
 
 	function Ticket(
 		address _terrapin, address _master, address _issuer, address _owner,
-		uint _usdPrice, address _eventAddress
+		uint _usdPrice, bytes32 _ticketType, address _eventAddress
 	) {
 		// initialize oracle service
 		OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
@@ -38,50 +39,22 @@ contract Ticket is usingOraclize {
 		terrapin = _terrapin;
 		master = _master;
 		issuer = _issuer;
-		setOwner(_owner);
-		usdPrice = _usdPrice; // in Wei
+		owner = _owner;
+		usdPrice = _usdPrice; // in USD cents
+		ticketType = _ticketType;
 		eventAddress = _eventAddress;
-	}
-
-	function __callback(bytes32 _oraclizeID, string _result) {
-		require(msg.sender == oraclize_cbAddress());
-		uint etherPriceUSDCents = parseInt(_result, 2);
-
-		uint pricePerCent = 1 ether / etherPriceUSDCents;
-		uint amountRequired = pricePerCent * usdPrice;
-
-		Tx tx = txIDs[_oraclizeID];
-
-		if (tx.value < amountRequired) return tx.sender.transfer(tx.value); // refund user
-
-		uint excessFunds = tx.value - amountRequired; // calculate any excess funds
-		owner.transfer(amountRequired); // send ether to event creater
-		tx.sender.transfer(excessFunds); // return any extra funds
-		setOwner(tx.sender);
-		isForSale = false; // ticket is not for sale anylonger
-		/*Log(this.balance);*/
-		Bought(true);
-	}
-
-	function buyTicket() payable {
-		require(isForSale);
-		require(isRedeemed == false); // make sure ticket hasn't already been redeemed
-
-		oraclizeID = oraclize_query("URL","json(https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD).USD");
-		txIDs[oraclizeID] = Tx(msg.sender, msg.value);
-		// need the ability to refund if oracalize doesn't work
 	}
 
 	function masterBuy(address _newOwner) {
 		require(msg.sender == master);
-		setOwner(_newOwner);
+		owner = _newOwner;
 		isForSale = false;
 	}
 
 	function transferTicket(address _recipient) {
-		require(msg.sender == owner);
+		require(msg.sender == owner || msg.sender == master);
 		require(isRedeemed == false);
-		setOwner(_recipient);
+		owner = _recipient;
 	}
 
 	function setIsForSale(bool _isForSale) {
@@ -100,8 +73,42 @@ contract Ticket is usingOraclize {
 		return this.balance;
 	}
 
-	function setOwner(address _owner) private {
-		owner = _owner;
-		/*return EventManager(terrapin).setTicketOwner(address(this), address(owner));*/
+	function setType(bytes32 _ticketType) {
+		require(msg.sender == issuer || msg.sender == master);
+		ticketType = _ticketType;
+	}
+
+	function setPrice(uint _usdPrice) {
+		require(msg.sender == issuer || msg.sender == master);
+		usdPrice = _usdPrice;
+	}
+
+	/* The following code isn't used for now*/
+	function buyTicket() payable {
+		require(isForSale);
+		require(isRedeemed == false); // make sure ticket hasn't already been redeemed
+
+		oraclizeID = oraclize_query("URL","json(https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD).USD");
+		txIDs[oraclizeID] = Tx(msg.sender, msg.value);
+		// need the ability to refund if oracalize doesn't work
+	}
+	function __callback(bytes32 _oraclizeID, string _result) {
+		require(msg.sender == oraclize_cbAddress());
+		uint etherPriceUSDCents = parseInt(_result, 2);
+
+		uint pricePerCent = 1 ether / etherPriceUSDCents;
+		uint amountRequired = pricePerCent * usdPrice;
+
+		Tx tx = txIDs[_oraclizeID];
+
+		if (tx.value < amountRequired) return tx.sender.transfer(tx.value); // refund user
+
+		uint excessFunds = tx.value - amountRequired; // calculate any excess funds
+		owner.transfer(amountRequired); // send ether to event creater
+		tx.sender.transfer(excessFunds); // return any extra funds
+		owner = tx.sender;
+		isForSale = false; // ticket is not for sale anylonger
+		/*Log(this.balance);*/
+		Bought(true);
 	}
 }

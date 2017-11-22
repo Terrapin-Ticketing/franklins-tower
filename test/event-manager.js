@@ -33,7 +33,7 @@ let MAX_TICKETS = 10;
 contract('EventManager', function(accounts) {
   before(function() {
     let eventName = 'String Cheese Incident @ Colorado';
-    let price = 1; // in cents
+    let basePrice = 1; // in cents
     let startDate = moment().unix();
     let endDate = moment().add(1, 'days').unix();
 
@@ -42,7 +42,7 @@ contract('EventManager', function(accounts) {
       terrapin = _terrapin; // make global for use in later "then"s
       this.terrapinInstance = terrapin;
       return terrapin.createEvent(
-        eventName, MAX_TICKETS, startDate, endDate,
+        eventName, MAX_TICKETS, basePrice, startDate, endDate,
         {
           from: accounts[1],
           gas: 4700000
@@ -53,7 +53,7 @@ contract('EventManager', function(accounts) {
         let eventInstance = Event.at(eventAddresses[0]);
         return pasync.eachSeries(new Array(MAX_TICKETS), () => {
           let accountNum = getRandomInt(3, 40);
-          return eventInstance.printTicket(accounts[accountNum], price, {
+          return eventInstance.printTicket(accounts[accountNum], 'GA', {
             from: accounts[1],
             gas: 4700000
           });

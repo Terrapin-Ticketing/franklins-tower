@@ -23,15 +23,16 @@ contract EventManager {
 		master = msg.sender;
 	}
 
-	function createEvent(bytes32 _eventName, int _maxTickets,
+	function createEvent(bytes32 _eventName, int _maxTickets, uint _usdPrice,
 		uint _startDate, uint _endDate
 	) {
-		Event ev = new Event(address(this),
-			master, msg.sender, _eventName, _maxTickets, _startDate, _endDate
+		Event ev = new Event(address(this), master,
+			msg.sender, _eventName, _maxTickets, _usdPrice, _startDate, _endDate
 		);
 		address eventAddress = address(ev);
 		events.push(eventAddress);
 		eventIssuerLookupTable[msg.sender].push(eventAddress);
+
 		// dispatch an event
 		EventCreated(eventAddress);
 	}
@@ -42,6 +43,10 @@ contract EventManager {
 
 	function getEventsByOwner(address _owner) constant returns(address[]) {
 		return eventIssuerLookupTable[_owner];
+	}
+
+	function getNumEventsByOwner(address _owner) constant returns(uint numEvents) {
+		return eventIssuerLookupTable[_owner].length;
 	}
 
 	function getOwnerTickets(address _owner) constant returns(address[]) {

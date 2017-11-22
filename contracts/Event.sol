@@ -25,6 +25,7 @@ contract Event {
 	bytes32 public name;
 	uint public startDate; // unix timestamp
 	uint public endDate; // unix timestamp
+	uint public baseUSDPrice;
 
 	// Venue Info
 	bytes32 public venueName;
@@ -34,7 +35,7 @@ contract Event {
 	bytes32 public venueZip;
 
 	function Event(address _terrapin, address _master, address _owner, bytes32 _name,
-		int _maxTickets, uint _startDate, uint _endDate
+		int _maxTickets, uint _usdPrice, uint _startDate, uint _endDate
 	) {
 		terrapin = _terrapin;
 		maxTickets = _maxTickets; // -1 means an unlimited supply
@@ -43,20 +44,27 @@ contract Event {
 		name = _name;
 		startDate = _startDate;
 		endDate = _endDate;
+		baseUSDPrice = _usdPrice;
 	}
 
-	function printTicket(address _ticketOwner, uint _usdPrice) {
+	function printTicket(address _ticketOwner, bytes32 _type) {
+		require(msg.sender == owner || msg.sender == master);
 		require(int(soldTickets) <= maxTickets || maxTickets == -1);
 		Ticket ticket = new Ticket(
 			terrapin,
 			master,
 			owner,
 			_ticketOwner,
-			_usdPrice,
+			baseUSDPrice,
+			_type,
 			address(this)
 		);
-		tickets.push(ticket);
+		tickets.push(address(ticket));
 		soldTickets++;
+	}
+
+	function getRemainingTickets() constant returns(int remainingTickets) {
+		return maxTickets - int(tickets.length);
 	}
 
 	function getTickets() constant returns(address[]) {
