@@ -1,7 +1,17 @@
 const request = require('request-promise');
 const config = require('config');
+const EthereumBip44 = require('ethereum-bip44');
 
 let eyesUri = config.get('uri');
+
+let walletAddress;
+if (config.privateSeed) {
+  let wallet = EthereumBip44.fromPrivateSeed(config.privateSeed);
+  walletAddress = wallet.getAddress(0);
+} else {
+  // default test address
+  walletAddress = '0xd1032b572ef650f0960f46c3b063c9ea71aff1df';
+}
 
 let abis = JSON.stringify({
   terrapin: require('./build/contracts/EventManager'),
@@ -16,7 +26,8 @@ let options = {
   uri: eyesUri,
   body: {
     abis,
-    terrapinAddress
+    terrapinAddress,
+    walletAddress
   },
   json: true // Automatically stringifies the body to JSON
 };

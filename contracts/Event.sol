@@ -82,6 +82,10 @@ contract Event {
 		return tickets;
 	}
 
+	function getTicketPrice(bytes32 _type) constant returns(uint usdPrice){
+		return ticketTypes[_type];
+	}
+
 	/*function userPrintTicket(bytes32 _type) {
 		require(int(soldTickets) <= maxTickets || maxTickets == -1);
 		Ticket ticket = new Ticket(

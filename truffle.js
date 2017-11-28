@@ -2,11 +2,12 @@ const Web3 = require('web3');
 const HDWalletProvider = require('truffle-hdwallet-provider');
 const EthereumBip44 = require('ethereum-bip44');
 
-let mnemonic = 'capable pill sample bench announce hole cushion horror direct pond exist garden';
-let wallet = EthereumBip44.fromPrivateSeed('xprv9s21ZrQH143K3DPrXctSwPAzKax5NFTy36bNqAVAVw9N9A9we92hTx4YPepXD4oWTpveB9NwzynjoAVK38LLrNdQibP6oR4DxooBpdaySLq');
 
 let infura_apikey = 'ErkMqD1W4xWqfkfqNBnt';
+let mnemonic = 'capable pill sample bench announce hole cushion horror direct pond exist garden';
 
+
+let wallet = EthereumBip44.fromPrivateSeed('xprv9s21ZrQH143K3DPrXctSwPAzKax5NFTy36bNqAVAVw9N9A9we92hTx4YPepXD4oWTpveB9NwzynjoAVK38LLrNdQibP6oR4DxooBpdaySLq');
 let wallet0pub = wallet.getAddress(0);
 console.log('deploying from:', wallet0pub);
 
