@@ -34,6 +34,9 @@ contract Event {
 	bytes32 public venueState;
 	bytes32 public venueZip;
 
+	// ticketType => price
+	mapping (bytes32 => uint) private ticketTypes;
+
 	function Event(address _terrapin, address _master, address _owner, bytes32 _name,
 		int _maxTickets, uint _usdPrice, uint _startDate, uint _endDate
 	) {
@@ -45,10 +48,41 @@ contract Event {
 		startDate = _startDate;
 		endDate = _endDate;
 		baseUSDPrice = _usdPrice;
+
+		// default ticket type
+		ticketTypes["GA"] = _usdPrice;
 	}
 
 	function printTicket(address _ticketOwner, bytes32 _type) {
 		require(msg.sender == owner || msg.sender == master);
+		require(int(soldTickets) <= maxTickets || maxTickets == -1);
+		Ticket ticket = new Ticket(
+			terrapin,
+			master,
+			owner,
+			_ticketOwner,
+			ticketTypes[_type],
+			_type,
+			address(this)
+		);
+		tickets.push(address(ticket));
+		soldTickets++;
+	}
+
+	function addTicketType(bytes32 _type, uint _usdPrice) {
+		require(msg.sender == owner || msg.sender == master);
+		ticketTypes[_type] = _usdPrice;
+	}
+
+	function getRemainingTickets() constant returns(int remainingTickets) {
+		return maxTickets - int(tickets.length);
+	}
+
+	function getTickets() constant returns(address[]) {
+		return tickets;
+	}
+
+	/*function userPrintTicket(bytes32 _type) {
 		require(int(soldTickets) <= maxTickets || maxTickets == -1);
 		Ticket ticket = new Ticket(
 			terrapin,
@@ -61,13 +95,5 @@ contract Event {
 		);
 		tickets.push(address(ticket));
 		soldTickets++;
-	}
-
-	function getRemainingTickets() constant returns(int remainingTickets) {
-		return maxTickets - int(tickets.length);
-	}
-
-	function getTickets() constant returns(address[]) {
-		return tickets;
-	}
+	}*/
 }
