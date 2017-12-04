@@ -23,11 +23,12 @@ contract EventManager {
 		master = msg.sender;
 	}
 
-	function createEvent(bytes32 _eventName, int _maxTickets, uint _usdPrice,
+	function createEvent(string _eventName,
+		int _maxTickets, uint _usdPrice,
 		uint _startDate, uint _endDate
 	) {
 		Event ev = new Event(address(this), master,
-			msg.sender, _eventName, _maxTickets, _usdPrice, _startDate, _endDate
+			msg.sender, _eventName, int(_maxTickets), _usdPrice, _startDate, _endDate
 		);
 		address eventAddress = address(ev);
 		events.push(eventAddress);

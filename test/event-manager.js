@@ -28,11 +28,12 @@ function getRandomInt(min, max) {
 }
 
 let wei = 1000000000000000000;
-let MAX_TICKETS = 10;
+let MAX_TICKETS = 6;
 
 contract('EventManager', function(accounts) {
   before(function() {
-    let eventName = 'String Cheese Incident @ Colorado';
+    // let eventName = 'String Cheese Incident @ Colorado';
+    let eventName = 'String Cheese';
     let basePrice = 1; // in cents
     let startDate = moment().unix();
     let endDate = moment().add(1, 'days').unix();
@@ -41,6 +42,7 @@ contract('EventManager', function(accounts) {
     return deployed().then((_terrapin) => {
       terrapin = _terrapin; // make global for use in later "then"s
       this.terrapinInstance = terrapin;
+      console.log('herers');
       return terrapin.createEvent(
         eventName, MAX_TICKETS, basePrice, startDate, endDate,
         {
@@ -48,20 +50,23 @@ contract('EventManager', function(accounts) {
           gas: 4700000
         });
     })
-      .then(() => terrapin.getEvents.call())
-      .then((eventAddresses) => {
-        let eventInstance = Event.at(eventAddresses[0]);
-        return pasync.eachSeries(new Array(MAX_TICKETS), () => {
-          let accountNum = getRandomInt(3, 40);
-          return eventInstance.printTicket(accounts[accountNum], 'GA', {
-            from: accounts[1],
-            gas: 4700000
-          });
-        }).then(() => eventInstance);
-      })
-      .then((eventInstance) => {
-        this.eventInstance = eventInstance;
+      .then(() => {
+        console.log('djddj');
       });
+      // .then(() => terrapin.getEvents.call())
+      // .then((eventAddresses) => {
+      //   let eventInstance = Event.at(eventAddresses[0]);
+      //   return pasync.eachSeries(new Array(MAX_TICKETS), () => {
+      //     let accountNum = getRandomInt(3, 40);
+      //     return eventInstance.printTicket(accounts[accountNum], 'GA', {
+      //       from: accounts[1],
+      //       gas: 4700000
+      //     });
+      //   }).then(() => eventInstance);
+      // })
+      // .then((eventInstance) => {
+      //   this.eventInstance = eventInstance;
+      // });
   });
 
   before(function() {
@@ -88,6 +93,54 @@ contract('EventManager', function(accounts) {
     return requestPromise('https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD')
       .then((res) => {
         this.etherPrice = JSON.parse(res).USD;
+      });
+  });
+
+  it.only('should buy and print a ticket', function() {
+    let eventInstance = this.eventInstance;
+    let etherPrice = this.etherPrice;
+
+    return eventInstance.getTicketPrice.call(web3.utils.fromAscii('GA'))
+      .then((price) => {
+        console.log('price', price);
+        let fee = 5;
+        let totalPrice = price + fee;
+
+        let etherNeeded = (totalPrice / etherPrice);
+        let weiNeeded = etherNeeded * wei;
+
+        console.log('etherPrice:', etherPrice);
+        console.log('wei sent:', weiNeeded);
+
+        return eventInstance.buyAndPrintTicket(web3.utils.fromAscii('GA'), {
+          from: accounts[2],
+          gas: 4700000,
+          value: weiNeeded
+        });
+      })
+      .then(() => {
+        let logEvent = eventInstance.Log();
+        logEvent.watch((err, result) => {
+          if (err) console.log(err);
+          console.log('log:', result.args);
+        });
+        return logEvent;
+      })
+      .then((logEvent) => {
+        // let boughtEvent = eventInstance.Log();
+        let boughtEvent = eventInstance.Bought();
+        return new Promise((resolve, reject) => {
+          boughtEvent.watch((err, result) => {
+            if (err) console.log(err);
+            console.log('bought:', result.args);
+            boughtEvent.stopWatching();
+            logEvent.stopWatching();
+            resolve();
+          });
+        });
+      })
+      .then(() => {
+        console.log('done');
       });
   });
 

@@ -18,7 +18,7 @@ contract Ticket is usingOraclize {
 	bool public isRedeemed = false;
 	bool public isForSale = true;
 	uint public usdPrice;
-	bytes32 public ticketType;
+	string public ticketType;
 
 	bytes32 public oraclizeID;
 
@@ -31,11 +31,10 @@ contract Ticket is usingOraclize {
 
 	function Ticket(
 		address _terrapin, address _master, address _issuer, address _owner,
-		uint _usdPrice, bytes32 _ticketType, address _eventAddress
+		uint _usdPrice, string _ticketType, address _eventAddress
 	) {
 		// initialize oracle service
 		OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
-
 		terrapin = _terrapin;
 		master = _master;
 		issuer = _issuer;
@@ -73,7 +72,7 @@ contract Ticket is usingOraclize {
 		return this.balance;
 	}
 
-	function setType(bytes32 _ticketType) {
+	function setType(string _ticketType) {
 		require(msg.sender == issuer || msg.sender == master);
 		ticketType = _ticketType;
 	}

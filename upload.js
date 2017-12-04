@@ -1,6 +1,8 @@
 const request = require('request-promise');
 const config = require('config');
 const EthereumBip44 = require('ethereum-bip44');
+let Web3 = require('web3');
+let web3 = new Web3(new Web3.providers.HttpProvider('http://192.168.12.226:8545'));
 
 let eyesUri = config.get('uri');
 
@@ -10,7 +12,8 @@ if (config.privateSeed) {
   walletAddress = wallet.getAddress(0);
 } else {
   // default test address
-  walletAddress = '0xd1032b572ef650f0960f46c3b063c9ea71aff1df';
+  let wallet = web3.eth.accounts.privateKeyToAccount(`0x${process.env.TPK}`);
+  walletAddress = wallet.address;
 }
 
 let abis = JSON.stringify({
